@@ -73,7 +73,7 @@ function App() {
                 </div>
               </div>
               <h1 className="text-4xl font-bold text-primary-700 mb-2">
-                3용스
+                3용스의 성장 일기
               </h1>
               <p className="text-primary-600 text-lg">
                 매일의 질문, 쌓이는 성장

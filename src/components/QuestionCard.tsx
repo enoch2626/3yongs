@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Lightbulb } from 'lucide-react';
 import { Question, Answer } from '../types';
 import { SpeechRecognizer } from '../utils/audio';
+import '../App.css';
 
 interface QuestionCardProps {
   question: Question;
@@ -17,13 +18,11 @@ export default function QuestionCard({
   onSave,
 }: QuestionCardProps) {
   const [text, setText] = useState(initialAnswer?.text || '');
-  const [selectedOption, setSelectedOption] = useState(
-    initialAnswer?.selectedOption || ''
-  );
   const [isListening, setIsListening] = useState(false);
   const [speechRecognizer, setSpeechRecognizer] = useState<SpeechRecognizer | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [showCelebration, setShowCelebration] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const previousQuestionId = useRef<string>(question.id);
 
@@ -32,14 +31,12 @@ export default function QuestionCard({
     if (previousQuestionId.current !== question.id) {
       // 새로운 질문으로 변경된 경우에만 초기화
       const savedText = initialAnswer?.text || '';
-      const savedOption = initialAnswer?.selectedOption || '';
       setText(savedText);
-      setSelectedOption(savedOption);
       previousQuestionId.current = question.id;
       setShowGuide(false); // 가이드도 초기화
       
-      // 텍스트 영역 포커스 (선택적)
-      if (textareaRef.current && !question.options && !savedText) {
+      // 텍스트 영역 포커스
+      if (textareaRef.current && !savedText) {
         setTimeout(() => {
           textareaRef.current?.focus();
         }, 100);
@@ -85,13 +82,8 @@ export default function QuestionCard({
     }
   };
 
-  const handleOptionSelect = (option: string) => {
-    setSelectedOption(option);
-    onAnswer({ selectedOption: option });
-  };
-
   const handleSave = async () => {
-    if (!text && !selectedOption) {
+    if (!text) {
       return; // 답변이 없으면 저장하지 않음
     }
 
@@ -99,8 +91,7 @@ export default function QuestionCard({
     
     try {
       const answerData: Partial<Answer> = {
-        text: text || undefined,
-        selectedOption: selectedOption || undefined,
+        text: text,
       };
 
       if (onSave) {
@@ -109,17 +100,17 @@ export default function QuestionCard({
         onAnswer(answerData);
       }
 
-      // 저장 성공 후 textarea 비우기 (선택형 답변은 그대로 유지)
-      if (!question.options) {
-        setText('');
-      }
+      // 저장 성공 후 textarea 비우기
+      setText('');
       
       setSaveStatus('saved');
+      setShowCelebration(true);
       
-      // 2초 후 상태 메시지 숨기기
+      // 축하 애니메이션 3초 후 숨기기
       setTimeout(() => {
+        setShowCelebration(false);
         setSaveStatus('idle');
-      }, 2000);
+      }, 3000);
     } catch (error) {
       console.error('저장 실패:', error);
       setSaveStatus('error');
@@ -130,7 +121,21 @@ export default function QuestionCard({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* 축하 애니메이션 */}
+      {showCelebration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="relative">
+            <div className="text-9xl celebrate-emoji">🎉</div>
+            <div className="absolute -top-8 -left-8 text-5xl float-emoji" style={{ animationDelay: '0s' }}>✨</div>
+            <div className="absolute -top-8 -right-8 text-5xl float-emoji" style={{ animationDelay: '0.2s' }}>⭐</div>
+            <div className="absolute -bottom-8 -left-8 text-5xl float-emoji" style={{ animationDelay: '0.4s' }}>🌟</div>
+            <div className="absolute -bottom-8 -right-8 text-5xl float-emoji" style={{ animationDelay: '0.6s' }}>💫</div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl float-emoji" style={{ animationDelay: '0.3s' }}>🎊</div>
+          </div>
+        </div>
+      )}
+      
       <div>
         <div className="flex items-start justify-between mb-4">
           <h3 className="text-2xl font-bold text-gray-800 flex-1">
@@ -163,46 +168,7 @@ export default function QuestionCard({
         )}
       </div>
 
-      {question.options ? (
-        <div className="space-y-3">
-          <p className="text-sm text-gray-600 mb-4">선택해주세요:</p>
-          <div className="grid grid-cols-2 gap-3">
-            {question.options.map((option) => (
-              <button
-                key={option}
-                onClick={() => handleOptionSelect(option)}
-                className={`p-4 rounded-lg border-2 transition-all text-center ${
-                  selectedOption === option
-                    ? 'border-primary-500 bg-primary-50 text-primary-700 font-semibold'
-                    : 'border-gray-200 hover:border-primary-300 text-gray-700'
-                }`}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center justify-between pt-2">
-            <button
-              onClick={handleSave}
-              disabled={!selectedOption || saveStatus === 'saving'}
-              className="px-6 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-            >
-              {saveStatus === 'saving' ? '저장 중...' : '입력하기'}
-            </button>
-            {saveStatus === 'saved' && (
-              <span className="text-sm text-green-600 font-medium">
-                ✓ 저장되었습니다
-              </span>
-            )}
-            {saveStatus === 'error' && (
-              <span className="text-sm text-red-600 font-medium">
-                저장에 실패했습니다
-              </span>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4">
+      <div className="space-y-4">
           <div className="relative">
             <textarea
               ref={textareaRef}
@@ -238,15 +204,18 @@ export default function QuestionCard({
           <div className="flex items-center justify-between">
             <button
               onClick={handleSave}
-              disabled={(!text && !selectedOption) || saveStatus === 'saving'}
+              disabled={!text || saveStatus === 'saving'}
               className="px-6 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               {saveStatus === 'saving' ? '저장 중...' : '입력하기'}
             </button>
             {saveStatus === 'saved' && (
-              <span className="text-sm text-green-600 font-medium">
-                ✓ 저장되었습니다
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl animate-bounce">🎉</span>
+                <span className="text-sm text-green-600 font-medium">
+                  저장되었습니다!
+                </span>
+              </div>
             )}
             {saveStatus === 'error' && (
               <span className="text-sm text-red-600 font-medium">

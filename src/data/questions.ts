@@ -7,14 +7,14 @@ export const questions: Record<AgeGroup, Question[]> = {
       category: 'emotion',
       text: '오늘 기분이 어땠어?',
       ageGroup: 5,
-      options: ['웃음', '화남', '신남', '피곤함', '무서움', '멋짐', '자랑스러움'],
+      exampleGuide: '예: 웃음\n예: 화남\n예: 신남\n예: 피곤함',
     },
     {
       id: '5-emotion-2',
       category: 'emotion',
       text: '오늘 어떤 감정을 느꼈어?',
       ageGroup: 5,
-      options: ['기쁨', '슬픔', '화남', '무서움', '놀람', '즐거움', '평온함'],
+      exampleGuide: '예: 기쁨\n예: 슬픔\n예: 화남\n예: 무서움',
     },
     {
       id: '5-learning-1',

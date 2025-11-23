@@ -17,8 +17,10 @@ export default function DailyLogView({
   const ageGroup = answers.length > 0 ? answers[0].ageGroup : 5;
   const questions = getDailyQuestions(ageGroup);
 
-  const getAnswerForQuestion = (questionId: string): Answer | undefined => {
-    return answers.find(a => a.questionId === questionId);
+  const getAnswersForQuestion = (questionId: string): Answer[] => {
+    return answers
+      .filter(a => a.questionId === questionId)
+      .sort((a, b) => b.timestamp - a.timestamp); // 최신 답변이 위로
   };
 
   if (answers.length === 0) {
@@ -57,28 +59,37 @@ export default function DailyLogView({
 
       <div className="space-y-4">
         {questions.map((question) => {
-          const answer = getAnswerForQuestion(question.id);
-          if (!answer) return null;
+          const questionAnswers = getAnswersForQuestion(question.id);
+          if (questionAnswers.length === 0) return null;
 
           return (
             <div
               key={question.id}
               className="bg-gray-50 rounded-lg p-5 border-l-4 border-primary-500"
             >
-              <div className="font-semibold text-gray-800 mb-2">
+              <div className="font-semibold text-gray-800 mb-3">
                 {question.text}
               </div>
-              <div className="text-gray-700 mt-3">
-                {answer.selectedOption ? (
-                  <span className="inline-block px-3 py-1 bg-primary-100 text-primary-700 rounded-full font-medium">
-                    {answer.selectedOption}
-                  </span>
-                ) : (
-                  <p className="whitespace-pre-wrap">{answer.text}</p>
-                )}
-              </div>
-              <div className="text-xs text-gray-500 mt-2">
-                {format(new Date(answer.timestamp), 'HH:mm')}
+              <div className="space-y-3">
+                {questionAnswers.map((answer, index) => (
+                  <div
+                    key={answer.id}
+                    className={`${index > 0 ? 'pt-3 border-t border-gray-200' : ''}`}
+                  >
+                    <div className="text-gray-700">
+                      {answer.selectedOption ? (
+                        <span className="inline-block px-3 py-1 bg-primary-100 text-primary-700 rounded-full font-medium">
+                          {answer.selectedOption}
+                        </span>
+                      ) : (
+                        <p className="whitespace-pre-wrap">{answer.text}</p>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2">
+                      {format(new Date(answer.timestamp), 'HH:mm')}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           );

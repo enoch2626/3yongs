@@ -31,9 +31,9 @@ export function getChildProfile(id: string): ChildProfile | undefined {
 
 export function saveAnswer(answer: Answer): void {
   const answers = getAllAnswers();
-  const existingIndex = answers.findIndex(
-    a => a.id === answer.id && a.date === answer.date
-  );
+  // 같은 ID가 이미 있으면 덮어쓰기, 없으면 새로 추가
+  // ID에 timestamp가 포함되어 있으므로 대부분 새로 추가됨
+  const existingIndex = answers.findIndex(a => a.id === answer.id);
   
   if (existingIndex >= 0) {
     answers[existingIndex] = answer;

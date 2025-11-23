@@ -224,7 +224,6 @@ export default function QuestionCard({
             )}
           </div>
         </div>
-      )}
     </div>
   );
 }

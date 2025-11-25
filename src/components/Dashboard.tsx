@@ -24,7 +24,6 @@ export default function Dashboard({ child }: DashboardProps) {
     const childAnswers = getAnswersByChild(child.id);
     setAnswers(childAnswers);
 
-    // 최근 30일 리포트 생성
     const endDate = format(new Date(), 'yyyy-MM-dd');
     const startDate = format(subDays(new Date(), 30), 'yyyy-MM-dd');
     const growthReport = generateGrowthReport(child.id, startDate, endDate);
@@ -35,34 +34,34 @@ export default function Dashboard({ child }: DashboardProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-lg p-6">
-        <div className="flex gap-4 mb-6">
+      <div className="bg-white rounded-airbnb-lg shadow-airbnb p-8 border border-gray-100">
+        <div className="flex gap-3 mb-8">
           <button
             onClick={() => setView('log')}
-            className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
+            className={`flex-1 py-3 rounded-airbnb font-semibold text-sm transition-all ${
               view === 'log'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-airbnb-coral text-white shadow-airbnb'
+                : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400 shadow-sm'
             }`}
           >
             일일 로그
           </button>
           <button
             onClick={() => setView('report')}
-            className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
+            className={`flex-1 py-3 rounded-airbnb font-semibold text-sm transition-all ${
               view === 'report'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-airbnb-coral text-white shadow-airbnb'
+                : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400 shadow-sm'
             }`}
           >
             성장 리포트
           </button>
           <button
             onClick={() => setView('analysis')}
-            className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
+            className={`flex-1 py-3 rounded-airbnb font-semibold text-sm transition-all ${
               view === 'analysis'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-airbnb-coral text-white shadow-airbnb'
+                : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400 shadow-sm'
             }`}
           >
             텍스트 분석
@@ -89,4 +88,6 @@ export default function Dashboard({ child }: DashboardProps) {
     </div>
   );
 }
+
+
 

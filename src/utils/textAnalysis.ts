@@ -1,159 +1,80 @@
 import { Answer } from '../types';
+import { parseISO } from 'date-fns';
 
-// 조사, 접속사 등 불필요한 단어 제거
-const STOP_WORDS = [
-  '은', '는', '이', '가', '을', '를', '에', '의', '와', '과', '도', '로', '으로',
-  '그리고', '그런데', '하지만', '그래서', '그러나', '또한', '또', '그리고',
-  '있어요', '있었어요', '했어요', '했었어요', '해요', '했어', '했었어',
-  '예', '예를', '들면', '같아요', '같은', '같이',
-  '때', '때문', '때문에', '때문이에요',
-  '것', '것이', '것을', '것을', '것도', '것으로',
-  '오늘', '내일', '어제', '그때',
-];
+const stopWords = ['은', '는', '이', '가', '을', '를', '의', '에', '에서', '와', '과', '도', '로', '으로', '하고', '그리고', '그런데', '하지만', '그래서', '그러나', '그', '이', '저', '것', '수', '때', '때문', '것', '거', '게', '거야', '거예요', '어요', '아요', '해요', '했어요', '했어', '했', '했던', '했을', '했을까', '했을까요'];
 
-// 긍정 관련 키워드
-const POSITIVE_KEYWORDS = [
-  '기쁨', '기쁘', '즐거', '즐겁', '행복', '신나', '신남', '재미', '재밌',
-  '좋아', '좋았', '멋져', '멋지', '자랑', '자랑스러', '뿌듯', '뿌듯해',
-  '웃음', '웃었', '웃고', '웃어', '즐거워', '즐거웠',
-];
+const positiveKeywords = ['기쁨', '행복', '즐거움', '신남', '뿌듯', '자랑', '사랑', '고마움', '좋아', '좋았', '재미있', '재밌', '즐거', '행복', '기쁘', '신나', '뿌듯', '자랑스럽', '사랑', '고마', '감사'];
+const negativeKeywords = ['슬픔', '화남', '무서움', '걱정', '피곤', '외로움', '슬프', '화나', '무서', '걱정', '피곤', '외로', '힘들', '어려', '짜증', '불안'];
+const challengeKeywords = ['도전', '시도', '해봤', '해봤어', '시도했', '도전했', '새로운', '처음', '어려웠', '어려운', '해결', '해결했', '성공', '성공했', '배웠', '배운', '학습', '성장', '발전'];
 
-// 부정 관련 키워드
-const NEGATIVE_KEYWORDS = [
-  '슬퍼', '슬프', '화나', '화났', '속상', '속상해', '답답', '답답해',
-  '무서워', '무서웠', '무서운', '걱정', '걱정돼', '걱정됐',
-  '힘들', '힘들어', '힘들었', '어려워', '어려웠', '어려운',
-];
-
-// 도전 관련 키워드
-const CHALLENGE_KEYWORDS = [
-  '도전', '시도', '해봤', '해봤어', '새로운', '새로', '처음',
-  '어려웠', '어려운', '어려워', '해결', '해결했', '해결해',
-  '노력', '노력했', '노력해', '열심히', '열심', '성장', '성장했',
-  '배웠', '배워', '배운', '학습', '학습했',
-];
-
-export interface TextAnalysisResult {
-  totalAnswers: number;
-  frequentWords: Array<{ word: string; count: number }>;
-  keywordRatios: {
-    positive: number;
-    negative: number;
-    challenge: number;
-  };
-}
-
-/**
- * 답변 배열을 분석하여 통계 정보를 반환합니다.
- * @param answers 분석할 답변 배열
- * @returns 분석 결과
- */
-export function analyzeAnswers(answers: Answer[]): TextAnalysisResult {
-  // 1. 총 답변 개수
-  const totalAnswers = answers.length;
-
-  // 2. 모든 텍스트를 합치고 단어 추출
-  const allTexts = answers
-    .map(a => a.text || a.selectedOption || '')
-    .filter(text => text.length > 0)
-    .join(' ');
-
-  // 단어 추출 및 빈도 계산
-  const words = extractWords(allTexts);
-  const wordCounts = countWords(words);
-  const frequentWords = Array.from(wordCounts.entries())
-    .map(([word, count]) => ({ word, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
-
-  // 3. 키워드 비율 계산
-  const keywordRatios = calculateKeywordRatios(allTexts);
-
-  return {
-    totalAnswers,
-    frequentWords,
-    keywordRatios,
-  };
-}
-
-/**
- * 텍스트에서 단어를 추출합니다 (조사, 접속사 제외)
- */
-function extractWords(text: string): string[] {
-  // 한글, 영문, 숫자만 추출
-  const cleaned = text.replace(/[^\w\s가-힣]/g, ' ');
-  const words = cleaned
-    .split(/\s+/)
-    .map(w => w.trim())
-    .filter(w => w.length > 1) // 1글자 단어 제외
-    .filter(w => !STOP_WORDS.includes(w)); // 불필요한 단어 제외
-
-  return words;
-}
-
-/**
- * 단어 빈도를 계산합니다
- */
-function countWords(words: string[]): Map<string, number> {
-  const counts = new Map<string, number>();
-  words.forEach(word => {
-    const count = counts.get(word) || 0;
-    counts.set(word, count + 1);
-  });
-  return counts;
-}
-
-/**
- * 키워드 비율을 계산합니다
- */
-function calculateKeywordRatios(text: string): {
-  positive: number;
-  negative: number;
-  challenge: number;
-} {
-  const lowerText = text.toLowerCase();
-  
-  let positiveCount = 0;
-  let negativeCount = 0;
-  let challengeCount = 0;
-
-  POSITIVE_KEYWORDS.forEach(keyword => {
-    const regex = new RegExp(keyword, 'g');
-    const matches = lowerText.match(regex);
-    if (matches) positiveCount += matches.length;
-  });
-
-  NEGATIVE_KEYWORDS.forEach(keyword => {
-    const regex = new RegExp(keyword, 'g');
-    const matches = lowerText.match(regex);
-    if (matches) negativeCount += matches.length;
-  });
-
-  CHALLENGE_KEYWORDS.forEach(keyword => {
-    const regex = new RegExp(keyword, 'g');
-    const matches = lowerText.match(regex);
-    if (matches) challengeCount += matches.length;
-  });
-
-  const totalKeywords = positiveCount + negativeCount + challengeCount;
-  
-  return {
-    positive: totalKeywords > 0 ? positiveCount / totalKeywords : 0,
-    negative: totalKeywords > 0 ? negativeCount / totalKeywords : 0,
-    challenge: totalKeywords > 0 ? challengeCount / totalKeywords : 0,
-  };
-}
-
-/**
- * 특정 기간의 답변을 필터링합니다
- */
 export function filterAnswersByPeriod(
   answers: Answer[],
   fromDate: string,
   toDate: string
 ): Answer[] {
   return answers.filter(answer => {
-    return answer.date >= fromDate && answer.date <= toDate;
+    const answerDate = parseISO(answer.date);
+    const from = parseISO(fromDate);
+    const to = parseISO(toDate);
+    return answerDate >= from && answerDate <= to;
   });
 }
+
+export function analyzeAnswers(answers: Answer[]) {
+  const totalAnswers = answers.length;
+  
+  // 단어 빈도 분석
+  const wordFrequency = new Map<string, number>();
+  let totalWords = 0;
+
+  answers.forEach(answer => {
+    if (answer.text) {
+      const words = answer.text
+        .replace(/[^\w\s가-힣]/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length > 1 && !stopWords.includes(w));
+      
+      words.forEach(word => {
+        const count = wordFrequency.get(word) || 0;
+        wordFrequency.set(word, count + 1);
+        totalWords++;
+      });
+    }
+  });
+
+  // 키워드 비율 분석
+  let positiveCount = 0;
+  let negativeCount = 0;
+  let challengeCount = 0;
+
+  answers.forEach(answer => {
+    if (answer.text) {
+      const text = answer.text.toLowerCase();
+      positiveKeywords.forEach(keyword => {
+        if (text.includes(keyword)) positiveCount++;
+      });
+      negativeKeywords.forEach(keyword => {
+        if (text.includes(keyword)) negativeCount++;
+      });
+      challengeKeywords.forEach(keyword => {
+        if (text.includes(keyword)) challengeCount++;
+      });
+    }
+  });
+
+  return {
+    totalAnswers,
+    frequentWords: Array.from(wordFrequency.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([word, count]) => ({ word, count })),
+    keywordRatios: {
+      positive: totalWords > 0 ? (positiveCount / totalWords) * 100 : 0,
+      challenge: totalWords > 0 ? (challengeCount / totalWords) * 100 : 0,
+      negative: totalWords > 0 ? (negativeCount / totalWords) * 100 : 0,
+    },
+  };
+}
+
+
 

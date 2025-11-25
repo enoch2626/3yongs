@@ -15,7 +15,6 @@ export default function TextAnalysisReport({
   period,
   onPeriodChange,
 }: TextAnalysisReportProps) {
-  // 기간 필터링
   const getFilteredAnswers = (): Answer[] => {
     if (period === 'all') {
       return answers;
@@ -31,7 +30,6 @@ export default function TextAnalysisReport({
   const filteredAnswers = getFilteredAnswers();
   const analysis = analyzeAnswers(filteredAnswers);
 
-  // 자연스러운 한국어 문장 생성
   const generateSummary = (): string => {
     if (filteredAnswers.length === 0) {
       return `${child.name}의 답변 데이터가 아직 충분하지 않습니다. 조금 더 기록을 쌓아주세요.`;
@@ -46,7 +44,6 @@ export default function TextAnalysisReport({
       summary += `주로 ${topWords} 같은 단어를 많이 사용했고, `;
     }
 
-    // 키워드 비율에 따른 설명
     const { positive, negative, challenge } = analysis.keywordRatios;
     
     if (challenge > 0.3) {
@@ -76,14 +73,14 @@ export default function TextAnalysisReport({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-bold text-gray-800">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">
           {child.name}의 성장 분석
         </h3>
         <select
           value={period}
           onChange={(e) => onPeriodChange(e.target.value as '7days' | '30days' | 'all')}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="px-5 py-2.5 border border-gray-300 rounded-airbnb focus:ring-2 focus:ring-airbnb-coral focus:border-airbnb-coral transition-all text-sm font-medium"
         >
           <option value="7days">최근 7일</option>
           <option value="30days">최근 30일</option>
@@ -91,46 +88,43 @@ export default function TextAnalysisReport({
         </select>
       </div>
 
-      {/* 요약 정보 */}
-      <div className="bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg p-6 border-l-4 border-primary-500">
-        <h4 className="font-semibold text-gray-800 mb-2">분석 요약</h4>
-        <p className="text-gray-700 leading-relaxed">{summary}</p>
+      <div className="bg-airbnb-light rounded-airbnb-lg p-8 border border-gray-200 shadow-sm">
+        <h4 className="font-semibold text-gray-900 mb-3 text-lg">분석 요약</h4>
+        <p className="text-gray-700 leading-relaxed font-light">{summary}</p>
       </div>
 
-      {/* 통계 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg p-5 border border-gray-200">
-          <div className="text-2xl font-bold text-primary-600 mb-1">
+        <div className="bg-white rounded-airbnb p-6 border border-gray-200 shadow-sm hover:shadow-airbnb transition-all">
+          <div className="text-3xl font-bold text-airbnb-coral mb-2">
             {analysis.totalAnswers}
           </div>
-          <div className="text-sm text-gray-600">총 답변 개수</div>
+          <div className="text-sm text-gray-600 font-medium">총 답변 개수</div>
         </div>
-        <div className="bg-white rounded-lg p-5 border border-gray-200">
-          <div className="text-2xl font-bold text-green-600 mb-1">
+        <div className="bg-white rounded-airbnb p-6 border border-gray-200 shadow-sm hover:shadow-airbnb transition-all">
+          <div className="text-3xl font-bold text-green-600 mb-2">
             {Math.round(analysis.keywordRatios.positive * 100)}%
           </div>
-          <div className="text-sm text-gray-600">긍정 키워드 비율</div>
+          <div className="text-sm text-gray-600 font-medium">긍정 키워드 비율</div>
         </div>
-        <div className="bg-white rounded-lg p-5 border border-gray-200">
-          <div className="text-2xl font-bold text-blue-600 mb-1">
+        <div className="bg-white rounded-airbnb p-6 border border-gray-200 shadow-sm hover:shadow-airbnb transition-all">
+          <div className="text-3xl font-bold text-blue-600 mb-2">
             {Math.round(analysis.keywordRatios.challenge * 100)}%
           </div>
-          <div className="text-sm text-gray-600">도전 키워드 비율</div>
+          <div className="text-sm text-gray-600 font-medium">도전 키워드 비율</div>
         </div>
       </div>
 
-      {/* 자주 사용한 단어 */}
       {analysis.frequentWords.length > 0 && (
-        <div className="bg-white rounded-lg p-5 border border-gray-200">
-          <h4 className="font-semibold text-gray-800 mb-4">가장 자주 나온 단어 상위 5개</h4>
-          <div className="flex flex-wrap gap-2">
+        <div className="bg-white rounded-airbnb-lg p-6 border border-gray-200 shadow-sm">
+          <h4 className="font-semibold text-gray-900 mb-5 text-lg">가장 자주 나온 단어 상위 5개</h4>
+          <div className="flex flex-wrap gap-3">
             {analysis.frequentWords.slice(0, 5).map((word, index) => (
               <div
                 key={word.word}
-                className="px-4 py-2 bg-primary-50 text-primary-700 rounded-full font-medium"
+                className="px-5 py-2.5 bg-airbnb-light text-airbnb-coral rounded-full font-semibold border border-airbnb-coral/20 shadow-sm"
               >
-                <span className="text-primary-500 mr-1">#{index + 1}</span>
-                {word.word} ({word.count}회)
+                <span className="text-airbnb-coral/70 mr-1.5">#{index + 1}</span>
+                {word.word} <span className="text-gray-500 font-normal">({word.count}회)</span>
               </div>
             ))}
           </div>
@@ -145,4 +139,6 @@ export default function TextAnalysisReport({
     </div>
   );
 }
+
+
 

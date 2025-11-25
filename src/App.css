@@ -1,33 +1,21 @@
-/* 축하 애니메이션 */
-@keyframes celebrate {
-  0% {
-    transform: scale(0) rotate(0deg);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.2) rotate(180deg);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1) rotate(360deg);
-    opacity: 0.8;
-  }
+/* Celebration animation */
+@keyframes rotateAndScale {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+  100% { transform: scale(1) rotate(360deg); opacity: 0; }
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
+@keyframes floatAndFade {
+  0% { transform: translateY(0) translateX(0) scale(0.5); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(-100px) translateX(var(--float-x)) scale(1); opacity: 0; }
 }
 
 .celebrate-emoji {
-  animation: celebrate 1s ease-out;
+  animation: rotateAndScale 1.5s ease-out forwards;
 }
 
 .float-emoji {
-  animation: float 1s ease-in-out infinite;
+  animation: floatAndFade 3s ease-out forwards;
+  --float-x: calc((random() - 0.5) * 200px);
 }
-

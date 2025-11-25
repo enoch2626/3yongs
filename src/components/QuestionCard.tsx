@@ -7,14 +7,13 @@ import '../App.css';
 interface QuestionCardProps {
   question: Question;
   initialAnswer?: Answer;
-  onAnswer: (answer: Partial<Answer>) => void;
-  onSave?: (answer: Partial<Answer>) => Promise<void>; // 저장 완료 콜백
+  onAnswer?: (answer: Partial<Answer>) => void;
+  onSave: (answer: Partial<Answer>) => Promise<void>;
 }
 
 export default function QuestionCard({
   question,
   initialAnswer,
-  onAnswer,
   onSave,
 }: QuestionCardProps) {
   const [text, setText] = useState(initialAnswer?.text || '');
@@ -26,42 +25,33 @@ export default function QuestionCard({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const previousQuestionId = useRef<string>(question.id);
 
-  // question이 변경될 때만 초기화 (커서 떨림 방지)
+  useEffect(() => {
+    const recognizer = new SpeechRecognizer();
+    if (recognizer.isAvailable()) {
+      setSpeechRecognizer(recognizer);
+    }
+  }, []);
+
   useEffect(() => {
     if (previousQuestionId.current !== question.id) {
-      // 새로운 질문으로 변경된 경우에만 초기화
       const savedText = initialAnswer?.text || '';
       setText(savedText);
       previousQuestionId.current = question.id;
-      setShowGuide(false); // 가이드도 초기화
-      
-      // 텍스트 영역 포커스
+      setShowGuide(false);
+      setSaveStatus('idle');
+
       if (textareaRef.current && !savedText) {
         setTimeout(() => {
           textareaRef.current?.focus();
         }, 100);
       }
+    } else if (initialAnswer && text !== (initialAnswer.text || '')) {
+      setText(initialAnswer.text || '');
     }
-    // initialAnswer는 question.id가 변경될 때만 사용하므로 의존성에서 제거
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [question.id]);
-
-  useEffect(() => {
-    try {
-      const recognizer = new SpeechRecognizer();
-      setSpeechRecognizer(recognizer);
-    } catch (error) {
-      console.log('음성 인식이 지원되지 않습니다.');
-    }
-  }, []);
-
-  // 자동 저장은 제거하고 버튼 클릭 시에만 저장
+  }, [question.id, initialAnswer]);
 
   const handleVoiceInput = () => {
-    if (!speechRecognizer) {
-      alert('이 브라우저는 음성 인식을 지원하지 않습니다.');
-      return;
-    }
+    if (!speechRecognizer) return;
 
     if (isListening) {
       speechRecognizer.stop();
@@ -69,44 +59,36 @@ export default function QuestionCard({
     } else {
       setIsListening(true);
       speechRecognizer.start(
-        (transcript) => {
-          setText(transcript);
+        (transcript: string) => {
+          setText(prev => prev + ' ' + transcript);
           setIsListening(false);
         },
-        (error) => {
+        (error: string) => {
           console.error('음성 인식 오류:', error);
           setIsListening(false);
-          alert('음성 인식 중 오류가 발생했습니다.');
         }
       );
     }
   };
 
   const handleSave = async () => {
-    if (!text) {
-      return; // 답변이 없으면 저장하지 않음
+    if (!text.trim()) {
+      return;
     }
 
     setSaveStatus('saving');
-    
+
     try {
       const answerData: Partial<Answer> = {
-        text: text,
+        text: text.trim(),
       };
 
-      if (onSave) {
-        await onSave(answerData);
-      } else {
-        onAnswer(answerData);
-      }
+      await onSave(answerData);
 
-      // 저장 성공 후 textarea 비우기
       setText('');
-      
       setSaveStatus('saved');
       setShowCelebration(true);
-      
-      // 축하 애니메이션 3초 후 숨기기
+
       setTimeout(() => {
         setShowCelebration(false);
         setSaveStatus('idle');
@@ -122,7 +104,6 @@ export default function QuestionCard({
 
   return (
     <div className="space-y-6 relative">
-      {/* 축하 애니메이션 */}
       {showCelebration && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <div className="relative">
@@ -137,29 +118,29 @@ export default function QuestionCard({
       )}
       
       <div>
-        <div className="flex items-start justify-between mb-4">
-          <h3 className="text-2xl font-bold text-gray-800 flex-1">
+        <div className="flex items-start justify-between mb-8">
+          <h3 className="text-4xl font-semibold text-airbnb-dark flex-1 leading-tight tracking-tight">
             {question.text}
           </h3>
           {question.exampleGuide && (
             <button
               onClick={() => setShowGuide(!showGuide)}
-              className="ml-4 p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+              className="ml-6 p-3 text-airbnb-gray-400 hover:text-airbnb-coral hover:bg-airbnb-gray-50 rounded-airbnb transition-all"
               title="답변 예시 보기"
             >
-              <Lightbulb className="w-5 h-5" />
+              <Lightbulb className="w-6 h-6" />
             </button>
           )}
         </div>
         {question.exampleGuide && showGuide && (
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg mb-4">
+          <div className="bg-airbnb-light border border-airbnb-gray-200 p-6 rounded-airbnb-lg mb-8 shadow-sm">
             <div className="flex items-start">
-              <Lightbulb className="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+              <Lightbulb className="w-6 h-6 text-airbnb-coral mt-0.5 mr-4 flex-shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-blue-800 mb-1">
+                <p className="text-sm font-semibold text-airbnb-dark mb-3">
                   💡 답변 예시:
                 </p>
-                <p className="text-sm text-blue-700 whitespace-pre-line">
+                <p className="text-sm text-airbnb-gray-400 whitespace-pre-line leading-relaxed">
                   {question.exampleGuide}
                 </p>
               </div>
@@ -168,63 +149,65 @@ export default function QuestionCard({
         )}
       </div>
 
-      <div className="space-y-4">
-          <div className="relative">
-            <textarea
-              ref={textareaRef}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="답변을 입력하세요..."
-              rows={6}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-            />
-            {speechRecognizer && (
-              <button
-                onClick={handleVoiceInput}
-                className={`absolute bottom-3 right-3 p-2 rounded-full transition-colors ${
-                  isListening
-                    ? 'bg-red-500 text-white animate-pulse'
-                    : 'bg-primary-100 text-primary-600 hover:bg-primary-200'
-                }`}
-                title="음성으로 답변하기"
-              >
-                {isListening ? (
-                  <MicOff className="w-5 h-5" />
-                ) : (
-                  <Mic className="w-5 h-5" />
-                )}
-              </button>
-            )}
+      <div className="space-y-8">
+        <div className="relative">
+          <textarea
+            ref={textareaRef}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="답변을 입력하세요..."
+            rows={7}
+            className="w-full px-6 py-5 border border-airbnb-gray-200 rounded-airbnb-lg focus:ring-2 focus:ring-airbnb-coral focus:border-airbnb-coral resize-none text-airbnb-dark placeholder-airbnb-gray-300 transition-all text-base leading-relaxed"
+          />
+          {speechRecognizer && (
+            <button
+              onClick={handleVoiceInput}
+              className={`absolute bottom-5 right-5 p-3 rounded-full transition-all shadow-airbnb ${
+                isListening
+                  ? 'bg-airbnb-coral text-white animate-pulse'
+                  : 'bg-white text-airbnb-gray-400 hover:text-airbnb-coral border border-airbnb-gray-200 hover:border-airbnb-coral hover:shadow-airbnb-lg'
+              }`}
+              title="음성으로 답변하기"
+            >
+              {isListening ? (
+                <MicOff className="w-6 h-6" />
+              ) : (
+                <Mic className="w-6 h-6" />
+              )}
+            </button>
+          )}
+        </div>
+        {isListening && (
+          <div className="text-sm text-airbnb-coral text-center animate-pulse font-semibold">
+            🎤 듣고 있어요... 말씀해주세요
           </div>
-          {isListening && (
-            <div className="text-sm text-primary-600 text-center animate-pulse">
-              🎤 듣고 있어요... 말씀해주세요
+        )}
+        <div className="flex items-center justify-between pt-4">
+          <button
+            onClick={handleSave}
+            disabled={!text.trim() || saveStatus === 'saving'}
+            className="px-10 py-4 bg-airbnb-coral text-white rounded-airbnb-lg font-semibold hover:bg-airbnb-red disabled:bg-airbnb-gray-300 disabled:cursor-not-allowed transition-all shadow-airbnb hover:shadow-airbnb-lg disabled:shadow-none text-base"
+          >
+            {saveStatus === 'saving' ? '저장 중...' : '입력하기'}
+          </button>
+          {saveStatus === 'saved' && (
+            <div className="flex items-center gap-3">
+              <span className="text-3xl animate-bounce">🎉</span>
+              <span className="text-base text-airbnb-coral font-semibold">
+                저장되었습니다!
+              </span>
             </div>
           )}
-          <div className="flex items-center justify-between">
-            <button
-              onClick={handleSave}
-              disabled={!text || saveStatus === 'saving'}
-              className="px-6 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-            >
-              {saveStatus === 'saving' ? '저장 중...' : '입력하기'}
-            </button>
-            {saveStatus === 'saved' && (
-              <div className="flex items-center gap-2">
-                <span className="text-2xl animate-bounce">🎉</span>
-                <span className="text-sm text-green-600 font-medium">
-                  저장되었습니다!
-                </span>
-              </div>
-            )}
-            {saveStatus === 'error' && (
-              <span className="text-sm text-red-600 font-medium">
-                저장에 실패했습니다
-              </span>
-            )}
-          </div>
+          {saveStatus === 'error' && (
+            <span className="text-base text-airbnb-red font-semibold">
+              저장에 실패했습니다
+            </span>
+          )}
         </div>
+      </div>
     </div>
   );
 }
+
+
 

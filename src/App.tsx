@@ -10,7 +10,6 @@ function App() {
   const [currentChild, setCurrentChild] = useState<ChildProfile | null>(null);
   const [showAgeSelection, setShowAgeSelection] = useState(true);
   const [view, setView] = useState<'questions' | 'dashboard'>('questions');
-  const [questionKey, setQuestionKey] = useState<number>(Date.now());
 
   const handleAgeSelect = (ageGroup: 5 | 8 | 11, name: string) => {
     const profiles = getChildProfiles();
@@ -42,21 +41,20 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <header className="text-center mb-8">
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-6 py-16 max-w-5xl">
+        <header className="text-center mb-16">
           <button
             onClick={handleHome}
-            className="inline-block hover:opacity-80 transition-opacity cursor-pointer w-full"
+            className="inline-block hover:opacity-90 transition-opacity cursor-pointer w-full group"
           >
-            <div className="flex flex-col items-center mb-4">
-              <div className="relative w-32 h-32 mb-3">
+            <div className="flex flex-col items-center mb-8">
+              <div className="relative w-32 h-32 mb-6">
                 <img 
                   src="/logo.jpg" 
                   alt="3용스 로고" 
-                  className="w-full h-full rounded-full object-cover border-4 border-primary-200 shadow-lg"
+                  className="w-full h-full rounded-full object-cover shadow-airbnb-lg transition-transform group-hover:scale-105"
                   onError={(e) => {
-                    // 이미지가 없으면 플레이스홀더 표시
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                     const placeholder = target.nextElementSibling as HTMLElement;
@@ -66,16 +64,16 @@ function App() {
                   }}
                 />
                 <div 
-                  className="hidden w-full h-full rounded-full bg-gradient-to-br from-primary-400 to-primary-600 border-4 border-primary-200 shadow-lg items-center justify-center text-white text-4xl font-bold"
+                  className="hidden w-full h-full rounded-full bg-gradient-to-br from-airbnb-coral via-airbnb-pink to-airbnb-red shadow-airbnb-lg items-center justify-center text-white text-4xl font-bold"
                   style={{ display: 'none' }}
                 >
                   3용스
                 </div>
               </div>
-              <h1 className="text-4xl font-bold text-primary-700 mb-2">
+              <h1 className="text-6xl font-bold text-airbnb-dark mb-4 tracking-tight">
                 3용스의 성장 일기
               </h1>
-              <p className="text-primary-600 text-lg">
+              <p className="text-airbnb-gray-400 text-2xl font-light">
                 매일의 질문, 쌓이는 성장
               </p>
             </div>
@@ -86,38 +84,37 @@ function App() {
           <AgeSelection onSelect={handleAgeSelect} />
         ) : currentChild ? (
           <>
-            <div className="mb-6 flex justify-between items-center">
+            <div className="mb-10 flex justify-between items-center">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-800">
+                <h2 className="text-4xl font-semibold text-airbnb-dark mb-3 tracking-tight">
                   {currentChild.name} ({currentChild.ageGroup}세)
                 </h2>
                 <button
                   onClick={handleBack}
-                  className="text-sm text-primary-600 hover:text-primary-800 mt-1"
+                  className="text-sm text-airbnb-gray-400 hover:text-airbnb-dark transition-colors font-medium underline-offset-2 hover:underline"
                 >
                   ← 다른 아이 선택
                 </button>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-4">
                 <button
                   onClick={() => {
-                    setQuestionKey(Date.now()); // 새로운 질문 세트 생성
-                    setView('questions'); // 질문 화면으로 전환
+                    setView('questions');
                   }}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  className={`px-8 py-3.5 rounded-airbnb font-semibold text-sm transition-all ${
                     view === 'questions'
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-white text-primary-600 border border-primary-300'
+                      ? 'bg-airbnb-coral text-white shadow-airbnb hover:shadow-airbnb-lg hover:bg-airbnb-red'
+                      : 'bg-white text-airbnb-dark border border-airbnb-gray-200 hover:border-airbnb-coral shadow-sm hover:shadow-airbnb'
                   }`}
                 >
                   질문하기
                 </button>
                 <button
                   onClick={() => setView('dashboard')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  className={`px-8 py-3.5 rounded-airbnb font-semibold text-sm transition-all ${
                     view === 'dashboard'
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-white text-primary-600 border border-primary-300'
+                      ? 'bg-airbnb-coral text-white shadow-airbnb hover:shadow-airbnb-lg hover:bg-airbnb-red'
+                      : 'bg-white text-airbnb-dark border border-airbnb-gray-200 hover:border-airbnb-coral shadow-sm hover:shadow-airbnb'
                   }`}
                 >
                   성장 로그
@@ -126,7 +123,7 @@ function App() {
             </div>
 
             {view === 'questions' ? (
-              <QuestionFlow child={currentChild} questionKey={questionKey} />
+              <QuestionFlow child={currentChild} />
             ) : (
               <Dashboard child={currentChild} />
             )}
@@ -138,4 +135,3 @@ function App() {
 }
 
 export default App;
-

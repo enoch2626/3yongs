@@ -4,13 +4,6 @@ interface AgeSelectionProps {
   onSelect: (ageGroup: AgeGroup, name: string) => void;
 }
 
-// 연령별 고정 이름 매핑
-const AGE_TO_NAME: Record<AgeGroup, string> = {
-  5: '용준',
-  8: '용제',
-  11: '용후',
-};
-
 export default function AgeSelection({ onSelect }: AgeSelectionProps) {
   const ageOptions: { age: AgeGroup; label: string; name: string; description: string }[] = [
     { age: 5, label: '5세', name: '용준', description: '단순하고 구체적인 질문' },
@@ -19,33 +12,33 @@ export default function AgeSelection({ onSelect }: AgeSelectionProps) {
   ];
 
   const handleSelect = (ageGroup: AgeGroup) => {
-    const name = AGE_TO_NAME[ageGroup];
+    const name = ageOptions.find(opt => opt.age === ageGroup)?.name || '';
     onSelect(ageGroup, name);
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+    <div className="bg-white rounded-airbnb-lg shadow-airbnb-lg p-12 max-w-xl mx-auto border border-airbnb-gray-100">
+      <h2 className="text-4xl font-semibold text-airbnb-dark mb-10 text-center tracking-tight">
         누구의 질문을 시작할까요?
       </h2>
       
-      <div className="space-y-4">
+      <div className="space-y-5">
         {ageOptions.map((option) => (
           <button
             key={option.age}
             onClick={() => handleSelect(option.age)}
-            className="w-full text-left p-5 rounded-lg border-2 border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all group"
+            className="w-full text-left p-7 rounded-airbnb-lg border border-airbnb-gray-200 hover:border-airbnb-coral hover:shadow-airbnb-lg transition-all group bg-white"
           >
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-bold text-xl text-gray-800 group-hover:text-primary-700">
+                <div className="font-semibold text-2xl text-airbnb-dark group-hover:text-airbnb-coral transition-colors mb-2">
                   {option.name} ({option.label})
                 </div>
-                <div className="text-sm text-gray-600 mt-1">
+                <div className="text-base text-airbnb-gray-400 font-light">
                   {option.description}
                 </div>
               </div>
-              <div className="text-primary-500 text-2xl group-hover:scale-110 transition-transform">
+              <div className="text-airbnb-gray-300 text-3xl group-hover:text-airbnb-coral group-hover:translate-x-2 transition-all">
                 →
               </div>
             </div>
@@ -55,4 +48,6 @@ export default function AgeSelection({ onSelect }: AgeSelectionProps) {
     </div>
   );
 }
+
+
 

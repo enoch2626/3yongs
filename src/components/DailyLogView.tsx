@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { Answer } from '../types';
-import { getDailyQuestions } from '../data/questions';
+import { generateDailyQuestions } from '../utils/questionGenerator';
 
 interface DailyLogViewProps {
   answers: Answer[];
@@ -13,31 +13,31 @@ export default function DailyLogView({
   selectedDate,
   onDateChange,
 }: DailyLogViewProps) {
-  // 연령 추정 (답변에서 첫 번째 답변의 ageGroup 사용, 없으면 기본값 5)
   const ageGroup = answers.length > 0 ? answers[0].ageGroup : 5;
-  const questions = getDailyQuestions(ageGroup);
+  const childId = answers.length > 0 ? answers[0].childId : 'default';
+  const questions = generateDailyQuestions(ageGroup, selectedDate, childId);
 
   const getAnswersForQuestion = (questionId: string): Answer[] => {
     return answers
       .filter(a => a.questionId === questionId)
-      .sort((a, b) => b.timestamp - a.timestamp); // 최신 답변이 위로
+      .sort((a, b) => b.timestamp - a.timestamp);
   };
 
   if (answers.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-6xl mb-4">📝</div>
-        <p className="text-gray-600 text-lg mb-4">
+      <div className="text-center py-16">
+        <div className="text-7xl mb-6">📝</div>
+        <p className="text-gray-700 text-xl mb-2 font-light">
           {format(new Date(selectedDate), 'yyyy년 MM월 dd일')}에는
         </p>
-        <p className="text-gray-500">
+        <p className="text-gray-500 mb-8">
           아직 기록이 없어요.
         </p>
         <input
           type="date"
           value={selectedDate}
           onChange={(e) => onDateChange(e.target.value)}
-          className="mt-6 px-4 py-2 border border-gray-300 rounded-lg"
+          className="px-5 py-3 border border-gray-300 rounded-airbnb focus:ring-2 focus:ring-airbnb-coral focus:border-airbnb-coral transition-all"
         />
       </div>
     );
@@ -46,18 +46,18 @@ export default function DailyLogView({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-bold text-gray-800">
+        <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">
           {format(new Date(selectedDate), 'yyyy년 MM월 dd일')}
         </h3>
         <input
           type="date"
           value={selectedDate}
           onChange={(e) => onDateChange(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg"
+          className="px-5 py-2.5 border border-gray-300 rounded-airbnb focus:ring-2 focus:ring-airbnb-coral focus:border-airbnb-coral transition-all text-sm"
         />
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {questions.map((question) => {
           const questionAnswers = getAnswersForQuestion(question.id);
           if (questionAnswers.length === 0) return null;
@@ -65,27 +65,27 @@ export default function DailyLogView({
           return (
             <div
               key={question.id}
-              className="bg-gray-50 rounded-lg p-5 border-l-4 border-primary-500"
+              className="bg-white rounded-airbnb p-6 border border-gray-200 shadow-sm hover:shadow-airbnb transition-all"
             >
-              <div className="font-semibold text-gray-800 mb-3">
+              <div className="font-semibold text-gray-900 mb-4 text-lg">
                 {question.text}
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {questionAnswers.map((answer, index) => (
                   <div
                     key={answer.id}
-                    className={`${index > 0 ? 'pt-3 border-t border-gray-200' : ''}`}
+                    className={`${index > 0 ? 'pt-4 border-t border-gray-100' : ''}`}
                   >
-                    <div className="text-gray-700">
+                    <div className="text-gray-700 leading-relaxed">
                       {answer.selectedOption ? (
-                        <span className="inline-block px-3 py-1 bg-primary-100 text-primary-700 rounded-full font-medium">
+                        <span className="inline-block px-4 py-1.5 bg-airbnb-light text-airbnb-coral rounded-full font-medium border border-airbnb-coral/20">
                           {answer.selectedOption}
                         </span>
                       ) : (
                         <p className="whitespace-pre-wrap">{answer.text}</p>
                       )}
                     </div>
-                    <div className="text-xs text-gray-500 mt-2">
+                    <div className="text-xs text-gray-500 mt-2 font-medium">
                       {format(new Date(answer.timestamp), 'HH:mm')}
                     </div>
                   </div>
@@ -98,4 +98,6 @@ export default function DailyLogView({
     </div>
   );
 }
+
+
 

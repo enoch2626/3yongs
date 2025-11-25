@@ -20,7 +20,41 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": [
+    "src/components/AgeSelection.tsx",
+    "src/components/QuestionFlow.tsx",
+    "src/components/QuestionCard.tsx",
+    "src/components/ParentMessage.tsx",
+    "src/components/Dashboard.tsx",
+    "src/components/DailyLogView.tsx",
+    "src/components/GrowthReportView.tsx",
+    "src/components/TextAnalysisReport.tsx",
+    "src/utils/storage.ts",
+    "src/utils/questionGenerator.ts",
+    "src/utils/audio.ts",
+    "src/utils/report.ts",
+    "src/utils/textAnalysis.ts",
+    "src/App.tsx",
+    "src/main.tsx",
+    "src/types.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/components/AddressBookList.tsx",
+    "src/components/AdminDashboard.tsx",
+    "src/components/AuthGuard.tsx",
+    "src/components/ExcelUpload.tsx",
+    "src/components/Login.tsx",
+    "src/components/Navbar.tsx",
+    "src/components/ParticipantDetail.tsx",
+    "src/components/ParticipantForm.tsx",
+    "src/components/UpdateRequestForm.tsx",
+    "src/utils/api.ts",
+    "src/utils/excel.ts",
+    "src/utils/mockAPI.ts",
+    "src/utils/mockData.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
 

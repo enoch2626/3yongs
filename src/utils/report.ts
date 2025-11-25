@@ -1,26 +1,23 @@
 import { GrowthReport } from '../types';
 import { getAnswersByChild } from './storage';
 
+const emotionKeywords = ['기쁨', '행복', '즐거움', '신남', '뿌듯', '자랑', '사랑', '고마움', '슬픔', '화남', '무서움', '걱정', '피곤', '외로움'];
+
 export function generateGrowthReport(
   childId: string,
   startDate: string,
   endDate: string
 ): GrowthReport {
-  const answers = getAnswersByChild(childId);
-  const filteredAnswers = answers.filter(
-    a => a.date >= startDate && a.date <= endDate
-  );
+  const allAnswers = getAnswersByChild(childId);
+  const filteredAnswers = allAnswers.filter(answer => {
+    const answerDate = answer.date;
+    return answerDate >= startDate && answerDate <= endDate;
+  });
 
   // 감정 패턴 분석
   const emotionMap = new Map<string, number>();
   filteredAnswers.forEach(answer => {
-    if (answer.selectedOption) {
-      const count = emotionMap.get(answer.selectedOption) || 0;
-      emotionMap.set(answer.selectedOption, count + 1);
-    }
     if (answer.text) {
-      // 간단한 감정 키워드 추출 (실제로는 더 정교한 NLP 필요)
-      const emotionKeywords = ['기쁨', '행복', '즐거움', '신남', '웃음', '화남', '슬픔', '걱정', '자랑', '멋짐'];
       emotionKeywords.forEach(keyword => {
         if (answer.text && answer.text.includes(keyword)) {
           const count = emotionMap.get(keyword) || 0;
@@ -34,7 +31,7 @@ export function generateGrowthReport(
     .map(([emotion, frequency]) => ({ emotion, frequency }))
     .sort((a, b) => b.frequency - a.frequency);
 
-  // 자주 사용된 단어 분석
+  // 자주 사용한 단어 분석
   const wordMap = new Map<string, number>();
   filteredAnswers.forEach(answer => {
     if (answer.text) {
@@ -53,40 +50,28 @@ export function generateGrowthReport(
 
   // 인사이트 생성
   const insights: string[] = [];
-  
   if (emotionPatterns.length > 0) {
     const topEmotion = emotionPatterns[0];
-    insights.push(`가장 자주 나타난 감정은 "${topEmotion.emotion}"입니다. (${topEmotion.frequency}회)`);
+    insights.push(`${topEmotion.emotion} 관련 표현이 자주 나타납니다.`);
   }
-
   if (frequentWords.length > 0) {
-    const topWord = frequentWords[0];
-    if (topWord.count >= 3) {
-      insights.push(`"${topWord.word}"라는 단어가 자주 등장합니다. 이는 아이의 관심사나 생각의 중심을 보여줍니다.`);
-    }
+    insights.push(`"${frequentWords[0].word}"라는 단어를 자주 사용합니다.`);
   }
-
-  const answerCount = filteredAnswers.length;
-  if (answerCount >= 20) {
-    insights.push('꾸준히 기록하고 있어요. 아이의 성장 흐름을 잘 파악할 수 있습니다.');
-  }
-
-  // 해결 방법 관련 키워드 검색
-  const solutionKeywords = ['해결', '방법', '다시', '노력', '시도'];
-  const hasSolutionWords = filteredAnswers.some(answer => 
-    answer.text && solutionKeywords.some(keyword => answer.text?.includes(keyword) || false)
-  );
-  
-  if (hasSolutionWords) {
-    insights.push('최근 "해결 방법"이나 "시도"라는 단어가 자주 등장합니다. 스스로 문제 해결 행동을 학습하고 있다는 신호입니다.');
+  if (filteredAnswers.length > 20) {
+    insights.push('꾸준히 기록을 쌓고 있어요!');
   }
 
   return {
     childId,
-    period: { start: startDate, end: endDate },
+    period: {
+      start: startDate,
+      end: endDate,
+    },
     emotionPatterns,
     frequentWords,
     insights,
   };
 }
+
+
 

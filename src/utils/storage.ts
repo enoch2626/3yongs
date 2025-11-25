@@ -31,15 +31,17 @@ export function getChildProfile(id: string): ChildProfile | undefined {
 
 export function saveAnswer(answer: Answer): void {
   const answers = getAllAnswers();
-  // 같은 ID가 이미 있으면 덮어쓰기, 없으면 새로 추가
-  // ID에 timestamp가 포함되어 있으므로 대부분 새로 추가됨
-  const existingIndex = answers.findIndex(a => a.id === answer.id);
+  // 같은 날짜, 같은 질문, 같은 아이의 답변은 여러 개 저장 가능 (타임스탬프로 구분)
+  // id가 고유하므로 항상 추가
+  answers.push(answer);
   
-  if (existingIndex >= 0) {
-    answers[existingIndex] = answer;
-  } else {
-    answers.push(answer);
-  }
+  // 날짜별로 정렬하여 저장
+  answers.sort((a, b) => {
+    if (a.date !== b.date) {
+      return b.date.localeCompare(a.date); // 최신 날짜가 먼저
+    }
+    return b.timestamp - a.timestamp; // 같은 날짜면 최신 시간이 먼저
+  });
   
   localStorage.setItem(STORAGE_KEYS.ANSWERS, JSON.stringify(answers));
 }
@@ -73,4 +75,6 @@ export function getDailyLog(date: string, childId: string): DailyLog | null {
     childId,
   };
 }
+
+
 
